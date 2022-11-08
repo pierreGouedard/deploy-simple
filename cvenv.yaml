@@ -1,0 +1,11 @@
+name: devops-env
+dependencies:
+  - python==3.9
+  - ipython
+  - pip
+  - pip:
+    - python-dotenv==0.21.0
+    - PyYAML==5.4.1
+    - colorama==0.4.6
+    - eventlet==0.33.1
+    - psutil==5.9.4
