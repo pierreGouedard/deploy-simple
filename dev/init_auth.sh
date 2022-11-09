@@ -5,5 +5,3 @@
 set -e
 
 IFS=',' read -r -a action_array <<< "$1"
-
-# Docker compose up lol

@@ -30,37 +30,22 @@ def get_config(local_conf_path: Path) -> Tuple[Dict[str, Any], Dict[str, Any], D
     """
 
     """
-    # Load dev devops config
+    # Load dev-python devops config
     print(f'Loading deploy config at {(local_conf_path / "deploy.yaml").as_posix()} ...')
     deploy_conf = yaml.safe_load((local_conf_path / 'deploy.yaml').open())
     deploy_conf['global'].update(
         {k: v.format(HOME=os.environ['HOME']) for k, v in deploy_conf['global'].items()}
     )
-    print('[Found]')
 
     # Load auth project config
-    print(f'Trying to find auth config at {Path(deploy_conf["global"]["PATH_API"]) / "auth-simple" } ...')
-    pth_auth_conf = Path(deploy_conf['global']['PATH_API']) / 'auth-simple' / 'conf' / 'local' / 'project_config.yaml'
-    if pth_auth_conf.exists():
-        print("[Found]")
-        auth_conf = yaml.safe_load(pth_auth_conf.open())
-        deploy_conf['auth-database'] = auth_conf['project-database']
-
-    else:
-        print(f"[Not Found]: Taking from {(local_conf_path / 'auth.yaml').as_posix()}")
-        auth_conf = yaml.safe_load((local_conf_path / 'auth.yaml').open())
+    print(f'Loading auth config at {local_conf_path / "auth.yaml" } ...')
+    auth_conf = yaml.safe_load((local_conf_path / 'auth.yaml').open())
 
     # Load front env
-    print(f'Trying to find front config at {Path(deploy_conf["global"]["PATH_API"]) / "front-simple"} ...')
-    pth_front_env = Path(deploy_conf["global"]["PATH_API"]) / 'front-simple' / 'dev.env'
-    if pth_front_env.exists():
-        front_env = dict(dotenv_values(pth_front_env.as_posix()))
-        print("[Found]")
+    print(f'Loading auth config at {local_conf_path / "front.env"} ...')
+    front_env = dict(dotenv_values((local_conf_path / 'front.env').as_posix()))
 
-    else:
-        print(f"[Not Found]: Taking from {(local_conf_path / 'front.env').as_posix()}")
-        front_env = dict(dotenv_values((local_conf_path / 'front.env').as_posix()))
-
+    # Check if everything is ok with config
     check_conf_consistency(deploy_conf, auth_conf, front_env)
 
     return deploy_conf, auth_conf, front_env

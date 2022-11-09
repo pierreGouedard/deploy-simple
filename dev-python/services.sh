@@ -16,7 +16,7 @@ run(){
           python wsgi.py
         ;;
 
-      # Write dev.env in folder
+      # Write dev-python.env in folder
       start-front)
         cd $PATH_API/front-simple && \
           source $CONDA_BIN_ACTIVATE front-env && \

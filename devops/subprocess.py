@@ -1,4 +1,4 @@
-""" Deployment dev, using python & subprocess. (Enable hot reloading when changes happens)
+""" Deployment dev-python, using python & subprocess. (Enable hot reloading when changes happens)
 
 """
 # Global import
