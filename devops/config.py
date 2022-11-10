@@ -30,7 +30,7 @@ def get_config(local_conf_path: Path) -> Tuple[Dict[str, Any], Dict[str, Any], D
     """
 
     """
-    # Load dev-python devops config
+    # Load dev-python-python devops config
     print(f'Loading deploy config at {(local_conf_path / "deploy.yaml").as_posix()} ...')
     deploy_conf = yaml.safe_load((local_conf_path / 'deploy.yaml').open())
     deploy_conf['global'].update(

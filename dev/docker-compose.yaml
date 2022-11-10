@@ -1,0 +1,52 @@
+version: "3"
+services:
+  postgresql:
+    #restart: always
+    image: postgres
+    environment:
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_DB=${POSTGRES_DB}
+    volumes:
+      - ${HOME}/postgres-data/:/var/lib/postgresql/data
+    ports:
+      - ${POSTGRES_PORT}:${POSTGRES_PORT}
+    networks:
+      platform_network:
+        aliases:
+          - simple.postgresql
+  auth:
+    build:
+      context: ${PATH_API}/auth-simple
+    environment:
+      - PROJECT_CONFIG=${PROJECT_CONFIG}
+    volumes:
+      - ${PATH_API}/auth-simple/auth:/opt/auth/auth
+    networks:
+      platform_network:
+        aliases:
+          - simple.auth
+    depends_on:
+      - postgresql
+  front:
+    build:
+      context: ${PATH_API}/front-simple
+    environment:
+      - ENV_PATH=${FRONT_ENV_PATH}
+    volumes:
+      - ${PATH_API}/front-simple/package.json:/opt/front/package.json
+      - ${PATH_API}/front-simple/package-lock.json:/opt/front/package-lock.json
+      - ${PATH_API}/front-simple/public:/opt/front/public
+      - ${PATH_API}/front-simple/src:/opt/front/src
+    networks:
+      platform_network:
+        aliases:
+          - frontend
+    depends_on:
+      - simple.front
+
+networks:
+  platform_network:
+    driver: bridge
+
+

@@ -1,0 +1,69 @@
+
+
+
+version: "3"
+services:
+  postgresql:
+    #restart: always
+    image: postgres:13.5
+    environment:
+      - POSTGRES_PASSWORD=${POSTGRES_PSSWRD}
+      - POSTGRES_USER=${POSTGRES_USR}
+      - POSTGRES_DB=${POSTGRES_DB}
+    volumes:
+      - ${HOME}/postgres-data/:/var/lib/postgresql/data
+    ports:
+      - ${POSTGRES_PORT}:${POSTGRES_PORT}
+    networks:
+      platform_network:
+        aliases:
+          - postgresql
+  auth:
+    build:
+      context: ../auth-simple
+    entrypoint: bash
+    command:
+      - ./build.sh
+    volumes:
+      - ../auth-simple/auth:/opt/auth/auth
+    networks:
+      platform_network:
+        aliases:
+          - auth
+    stdin_open: true
+    tty: true
+  front:
+    build:
+      context:  ${PATH_API}/front-simple
+    environment:
+      - ENV_PATH=${FRONT_ENV_PATH}
+    volumes:
+      - ${PATH_API}/front-simple/package.json:/opt/front/package.json
+      - ${PATH_API}/front-simple/package-lock.json:/opt/front/package-lock.json
+      - ${PATH_API}/front-simple/public:/opt/front/public
+      - ${PATH_API}/front-simple/src:/opt/front/src
+    networks:
+      platform_network:
+        aliases:
+          - frontend
+  nginx:
+    image: git.sia-partners.com:5656/heka/tools/nginx-yq:1
+    entrypoint: bash
+    command:
+      - /opt/app/conf/bootstrap_nginx.sh
+    volumes:
+      - ./conf:/opt/app/conf
+    ports:
+      - 80:80
+    networks:
+      platform_network:
+        aliases:
+          - nginx
+          - lab.localhost
+          - heka.localhost
+          - heka-dev-python.localhost
+    depends_on:
+      - front
+networks:
+  platform_network:
+    driver: bridge

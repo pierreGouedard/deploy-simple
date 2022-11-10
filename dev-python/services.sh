@@ -16,11 +16,12 @@ run(){
           python wsgi.py
         ;;
 
-      # Write dev-python.env in folder
+      # Write dev-python-python.env in folder
       start-front)
         cd $PATH_API/front-simple && \
           source $CONDA_BIN_ACTIVATE front-env && \
-          cp -f $2/front.env $PATH_API/front-simple/dev.env && \
+          cp -f $2/front.env $PATH_API/front-simple/envs/dev-python.env && \
+          export ENV_PATH=envs/dev-python.env
           npm run devwebpack
         ;;
 

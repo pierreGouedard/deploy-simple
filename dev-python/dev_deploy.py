@@ -1,4 +1,4 @@
-""" Deployment dev-python, using python & subprocess.
+""" Deployment dev-python-python, using python & subprocess.
  Enable to choose whihc service to deploy
 
 """
@@ -43,8 +43,8 @@ if __name__ == '__main__':
     # Get args
     args = DeployArgParser().parse_args()
 
-    # Get project path and load (if any) dev env
-    local_conf_path = project_path / "conf" / "local" / "dev"
+    # Get project path and load (if any) dev-python env
+    local_conf_path = project_path / "conf" / "local" / "dev-python"
     deploy_conf, auth_conf, front_env = get_config(local_conf_path)
 
     # Write merged conf files to tmp dir.
@@ -58,20 +58,20 @@ if __name__ == '__main__':
         # clean auth DB pg and rebuild it.
         infra_th = SubprocessThread(
             [
-                './dev-python/infra.sh', 'clean,build,pgadmin', deploy_conf['auth-database']['user'],
+                './dev-python-python/infra.sh', 'clean,build,pgadmin', deploy_conf['auth-database']['user'],
                 deploy_conf['auth-database']['password'], deploy_conf['auth-database']['port']
             ], 'INFRA', Fore.GREEN
         )
 
         # Auth service thread.
         auth_th = SubprocessThread(
-            ['./dev-python/services.sh', 'start-auth', tmp_dir.path.as_posix()], 'AUTH', Fore.BLUE, deploy_conf['global']
+            ['./dev-python-python/services.sh', 'start-auth', tmp_dir.path.as_posix()], 'AUTH', Fore.BLUE, deploy_conf['global']
         )
 
     if 'front' in args.services:
         # Front server thread.
         front_th = SubprocessThread(
-            ['./dev-python/services.sh', 'start-front', tmp_dir.path.as_posix()], 'FRONT', Fore.RED, deploy_conf['global']
+            ['./dev-python-python/services.sh', 'start-front', tmp_dir.path.as_posix()], 'FRONT', Fore.RED, deploy_conf['global']
         )
 
     # Register the signal handlers to terminate nicely threads
@@ -110,7 +110,7 @@ if __name__ == '__main__':
         if 'auth' in args.services:
             infra_th = SubprocessThread(
                 [
-                    './dev-python/infra.sh', 'clean', deploy_conf['auth-database']['user'],
+                    './dev-python-python/infra.sh', 'clean', deploy_conf['auth-database']['user'],
                     deploy_conf['auth-database']['password'], deploy_conf['auth-database']['port']
                 ], 'INFRA', Fore.GREEN,
             )
