@@ -14,10 +14,12 @@ services:
     networks:
       platform_network:
         aliases:
-          - simple.postgresql
+          - postgresql
   auth:
     build:
       context: ${PATH_API}/auth-simple
+      args:
+        AUTH_PORT: 80
     environment:
       - PROJECT_CONFIG=${PROJECT_CONFIG}
     volumes:
@@ -25,12 +27,14 @@ services:
     networks:
       platform_network:
         aliases:
-          - simple.auth
+          - auth
     depends_on:
       - postgresql
   front:
     build:
       context: ${PATH_API}/front-simple
+      args:
+        FRONT_PORT: ${FRONT_PORT}
     environment:
       - ENV_PATH=${FRONT_ENV_PATH}
     volumes:
@@ -41,9 +45,21 @@ services:
     networks:
       platform_network:
         aliases:
-          - frontend
+          - front
     depends_on:
-      - simple.front
+      - auth
+  nginx:
+    build:
+      context: ${PATH_API}/nginx-simple
+    ports:
+      - "80:80"
+    networks:
+      platform_network:
+        aliases:
+          - nginx
+          - simple.localhost
+    depends_on:
+      - front
 
 networks:
   platform_network:

@@ -1,11 +1,14 @@
 from typing import Tuple, Dict, Any
+
+import dotenv
 from dotenv import dotenv_values
 from pathlib import Path
+import argparse
 import yaml
 import os
 
 
-def check_conf_consistency(
+def check_dev_python_conf(
         deploy_conf: Dict[str, Any], auth_conf: Dict[str, Any], front_env: Dict[str, Any]
 ) -> None:
     """
@@ -46,6 +49,70 @@ def get_config(local_conf_path: Path) -> Tuple[Dict[str, Any], Dict[str, Any], D
     front_env = dict(dotenv_values((local_conf_path / 'front.env').as_posix()))
 
     # Check if everything is ok with config
-    check_conf_consistency(deploy_conf, auth_conf, front_env)
+    check_dev_python_conf(deploy_conf, auth_conf, front_env)
 
     return deploy_conf, auth_conf, front_env
+
+
+def check_conf(path_conf: Path) -> None:
+    # Load conf:
+    d_auth = yaml.safe_load((path_conf / 'auth.yaml').open())
+    d_deploy = dict(dotenv_values(path_conf / 'deploy.env'))
+    d_front = dict(dotenv_values(path_conf / 'front.env'))
+
+    # Check consistency between auth & deploy conf
+    for k, l in [
+        ('POSTGRES_PORT', 'port'), ('POSTGRES_DB', 'name'), ('POSTGRES_USER', 'user'),
+        ('POSTGRES_PASSWORD', 'password')
+    ]:
+        try:
+            assert d_deploy[k] == d_auth['project-database'][l]
+        except AssertionError:
+            raise ValueError(f'deploy conf and  auth conf differs on auth database on key {k}')
+
+    for k, l in [('HOSTNAME', 'hostname'), ('PROTOCOL', 'protocol'), ('AUTH_PORT', 'port')]:
+        try:
+            assert str(d_deploy[k]) == str(d_auth['project'][l])
+        except AssertionError:
+            raise ValueError(f'deploy conf and  auth conf differs on auth {k}')
+
+    # Check consistency between front conf & (auth, deploy) conf
+    url_auth = f"{d_auth['project']['protocol']}://{d_auth['project']['hostname']}{d_deploy['AUTH_URI']}"
+    try:
+        assert d_front['AUTH_URL'] == url_auth
+    except AssertionError:
+        raise ValueError(
+            f"Auth service URL doesn't match with front config auth url: "
+            f"{url_auth} != {d_front['AUTH_URL']}"
+        )
+    try:
+        assert d_front['PORT'] == d_deploy['FRONT_PORT']
+    except AssertionError:
+        raise ValueError(
+            f"Front port from front and deploy env differs {d_front['PORT']} != {d_deploy['FRONT_PORT']}"
+        )
+
+
+class CheckConfigArgParser(argparse.ArgumentParser):
+    def __init__(self):
+        super().__init__(description="Arg parser for Heka task updating.")
+        self.add_argument(
+            "--path",
+            metavar="path",
+            default="conf/local/dev",
+            type=str,
+            help="path to config dir to check",
+        )
+
+
+if __name__ == '__main__':
+    # get args
+    args = CheckConfigArgParser().parse_args()
+
+    # Set paths
+    project_path = Path(__file__).parent.parent
+    conf_path = project_path / args.path
+
+    # Check conf
+    check_conf(conf_path)
+
