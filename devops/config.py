@@ -77,7 +77,7 @@ def check_conf(path_conf: Path) -> None:
             raise ValueError(f'deploy conf and  auth conf differs on auth {k}')
 
     # Check consistency between front conf & (auth, deploy) conf
-    url_auth = f"{d_auth['project']['protocol']}://{d_auth['project']['hostname']}{d_deploy['AUTH_URI']}"
+    url_auth = f"{d_auth['project']['protocol']}://{d_auth['project']['hostname']}{d_deploy['AUTH_URI']}/"
     try:
         assert d_front['AUTH_URL'] == url_auth
     except AssertionError:
